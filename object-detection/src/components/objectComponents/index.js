@@ -1,16 +1,16 @@
-import React from "react";
+import React, { useRef } from "react";
 import styled from "styled-components";
 import "@tensorflow/tfjs-backend-cpu";
 import "@tensorflow/tfjs-backend-webgl";
-import * as Ssd from "@tensorflow-models/coco-ssd";
+import * as cocoSsd from "@tensorflow-models/coco-ssd";
 
-const detectorContainer = styled.div`
+const DetectorContainer = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
 `;
 
-const imageContainer = styled.div `
+const ImageContainer = styled.div`
     min-width: 200px;
     height: 500px;
     border: 3px solid #fff;
@@ -21,15 +21,15 @@ const imageContainer = styled.div `
     position: relative; 
 `;
 
-const mainImage = styled.img`
+const MainImage = styled.img`
     height: 100%;
 `;
 
-const fileInput = styled.input`
+const FileInput = styled.input`
     display: none;
 `;
 
-const chooseButton = styled.button`
+const ChooseButton = styled.button`
     padding: 7px 10px;
     border: 2px solid transparent;
     background-color: #fff;
@@ -43,14 +43,20 @@ const chooseButton = styled.button`
     &:hover {
         background-color: transparent;
         border: 2px solid #fff;
-        color: WHITE;
+        color: #fff;
     }
 `;
-export function objectComponent(props) {
+export function ObjectComponent(props) {
+    const fileRef = useRef();
+
+    const openFile = () => {
+        if(fileRef.current) fileRef.current.click();
+    }
     return (
-    <detectorContainer>
-        <imageContainer>Img</imageContainer>
-        <chooseButton>Pick your image</chooseButton>
-    </detectorContainer>
+    <DetectorContainer>
+        <ImageContainer>Img</ImageContainer>
+        <FileInput type="file" ref={fileRef}/>
+        <ChooseButton onClick={openFile}>Pick your image</ChooseButton>
+    </DetectorContainer>
     );
 }
