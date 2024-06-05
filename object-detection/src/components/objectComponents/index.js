@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+import { useState } from "react";
 import styled from "styled-components";
 import "@tensorflow/tfjs-backend-cpu";
 import "@tensorflow/tfjs-backend-webgl";
@@ -48,14 +49,28 @@ const ChooseButton = styled.button`
 `;
 export function ObjectComponent(props) {
     const fileRef = useRef();
+    const [imgD, setImgD] = useState(null);
 
     const openFile = () => {
         if(fileRef.current) fileRef.current.click();
     }
+    const readI = (file) => {
+        return new Promise((resolve, reject) => {
+            const fileRead = new FileReader();
+            fileRead.onload = () => resolve(fileRead.result);
+            fileRead.onerror = () => reject(fileRead.error);
+            fileRead.readAsDataURL(file);
+        });
+    };
+    const onSelect = async (e) => {
+        const file = e.target.files[0];
+        const imgD = await readI(file);
+        setImgD(imgD);
+    };
     return (
     <DetectorContainer>
-        <ImageContainer>Img</ImageContainer>
-        <FileInput type="file" ref={fileRef}/>
+        <ImageContainer> {imgD && <img src={imgD}/>}</ImageContainer>
+        <FileInput type="file" ref={fileRef} onChange={onSelect} />
         <ChooseButton onClick={openFile}>Pick your image</ChooseButton>
     </DetectorContainer>
     );
