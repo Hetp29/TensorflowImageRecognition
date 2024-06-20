@@ -47,9 +47,30 @@ const ChooseButton = styled.button`
         color: #fff;
     }
 `;
+const Target = styled.div`
+    position: absolute;
+    left: ${({  x  }) => x + "px"};
+    top: ${({  y  }) => y + "px"};
+    width: ${({  width  }) => width + "px"};
+    height: ${({  height  }) => height + "px"};
+    border: 4px solid #1ac71a;
+    background-color: transparent;
+    &::before {
+        content: "${({  classType, score }) => `${classType} ${score.toFixed(2)}`}";
+        color: #1ac71a;
+        font-weight: 500;
+        font-size: 16px;
+        position: absolute;
+        top: -1.5em;
+        left: -5px;
+
+    }
+`;
 export function ObjectComponent(props) {
     const fileRef = useRef();
     const [imgD, setImgD] = useState(null);
+    const [detected, setDetected] = useState([]);
+    const empty = !detected || detected.length === 0;
 
     const openFile = () => {
         if(fileRef.current) fileRef.current.click();
