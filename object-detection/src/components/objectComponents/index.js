@@ -54,6 +54,12 @@ export function ObjectComponent(props) {
     const openFile = () => {
         if(fileRef.current) fileRef.current.click();
     }
+    const objDetection = async (element) => {
+        const image = await cocoSsd.load({    })
+        const detected = await image.detect(element, 10);
+        console.log("Predictions: ", detected);
+
+    };
     const readI = (file) => {
         return new Promise((resolve, reject) => {
             const fileRead = new FileReader();
@@ -66,10 +72,15 @@ export function ObjectComponent(props) {
         const file = e.target.files[0];
         const imgD = await readI(file);
         setImgD(imgD);
+        const element = document.createElement("img");
+        element.src = imgD;
+        element.onload = async () => {
+            await objDetection(element);
+        }
     };
     return (
     <DetectorContainer>
-        <ImageContainer> {imgD && <img src={imgD}/>}</ImageContainer>
+        <ImageContainer> {imgD && <MainImage src={imgD}/>}</ImageContainer>
         <FileInput type="file" ref={fileRef} onChange={onSelect} />
         <ChooseButton onClick={openFile}>Pick your image</ChooseButton>
     </DetectorContainer>
