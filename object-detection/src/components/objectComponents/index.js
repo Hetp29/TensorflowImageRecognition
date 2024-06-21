@@ -1,5 +1,4 @@
-import React, { useRef } from "react";
-import { useState } from "react";
+import React, { useRef, useState } from "react";
 import styled from "styled-components";
 import "@tensorflow/tfjs-backend-cpu";
 import "@tensorflow/tfjs-backend-webgl";
@@ -47,40 +46,51 @@ const ChooseButton = styled.button`
         color: #fff;
     }
 `;
+
 const Target = styled.div`
     position: absolute;
-    left: ${({  x  }) => x + "px"};
-    top: ${({  y  }) => y + "px"};
-    width: ${({  width  }) => width + "px"};
-    height: ${({  height  }) => height + "px"};
+    left: ${({ x }) => x + "px"};
+    top: ${({ y }) => y + "px"};
+    width: ${({ width }) => width + "px"};
+    height: ${({ height }) => height + "px"};
     border: 4px solid #1ac71a;
     background-color: transparent;
+    z-index: 20;
     &::before {
-        content: "${({  classType, score }) => `${classType} ${score.toFixed(2)}`}";
+        content: "${({ classType, score }) => `${classType} ${score.toFixed(2)}`}";
         color: #1ac71a;
         font-weight: 500;
         font-size: 16px;
         position: absolute;
         top: -1.5em;
         left: -5px;
-
     }
 `;
-export function ObjectComponent(props) {
+
+export function ObjectComponent() {
     const fileRef = useRef();
     const [imgD, setImgD] = useState(null);
     const [detected, setDetected] = useState([]);
-    const empty = !detected || detected.length === 0;
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     const openFile = () => {
-        if(fileRef.current) fileRef.current.click();
-    }
-    const objDetection = async (element) => {
-        const image = await cocoSsd.load({    })
-        const detected = await image.detect(element, 10);
-        console.log("Predictions: ", detected);
-
+        if (fileRef.current) fileRef.current.click();
     };
+
+    const objDetection = async (element) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const model = await cocoSsd.load();
+            const predictions = await model.detect(element, 10);
+            setDetected(predictions);
+        } catch (err) {
+            setError("Error during detection. Please try again.");
+        }
+        setLoading(false);
+    };
+
     const readI = (file) => {
         return new Promise((resolve, reject) => {
             const fileRead = new FileReader();
@@ -89,6 +99,7 @@ export function ObjectComponent(props) {
             fileRead.readAsDataURL(file);
         });
     };
+
     const onSelect = async (e) => {
         const file = e.target.files[0];
         const imgD = await readI(file);
@@ -97,13 +108,29 @@ export function ObjectComponent(props) {
         element.src = imgD;
         element.onload = async () => {
             await objDetection(element);
-        }
+        };
     };
+
     return (
-    <DetectorContainer>
-        <ImageContainer> {imgD && <MainImage src={imgD}/>}</ImageContainer>
-        <FileInput type="file" ref={fileRef} onChange={onSelect} />
-        <ChooseButton onClick={openFile}>Pick your image</ChooseButton>
-    </DetectorContainer>
+        <DetectorContainer>
+            <ImageContainer>
+                {imgD && <MainImage src={imgD} />}
+                {detected.map((item, index) => (
+                    <Target
+                        key={index}
+                        x={item.bbox[0]}
+                        y={item.bbox[1]}
+                        width={item.bbox[2]}
+                        height={item.bbox[3]}
+                        classType={item.class}
+                        score={item.score}
+                    />
+                ))}
+            </ImageContainer>
+            <FileInput type="file" ref={fileRef} onChange={onSelect} />
+            <ChooseButton onClick={openFile}>Pick your image</ChooseButton>
+            {loading && <p>Loading...</p>}
+            {error && <p>{error}</p>}
+        </DetectorContainer>
     );
 }
